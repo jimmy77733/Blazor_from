@@ -1,7 +1,41 @@
 ﻿@page "/"
+@using Blazor_from.Services
+@inject UserStateService UserState
+@inject NavigationManager NavigationManager
+@implements IDisposable
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="text-center card-glass">
+    @if (UserState.IsLoggedIn)
+    {
+        <h1 class="display-4">Welcome back, @UserState.UserName!</h1>
+        <p class="lead">Start exploring the powerful features of our app.</p>
+    }
+    else
+    {
+        <h1 class="display-4">Welcome to our Blazor project</h1>
+        <p class="lead">To get started, create an account.</p>
+        <button class="btn-modern btn-lg mt-3" @onclick="GoToRegister">Register now</button>
+    }
+</div>
 
-Welcome to your new app.
+@code {
+    protected override void OnInitialized()
+    {
+        // 訂閱狀態改變事件，當使用者登入/登出時，UI會自動更新
+        UserState.OnStateChange += StateHasChanged;
+    }
+
+    private void GoToRegister()
+    {
+        NavigationManager.NavigateTo("/register");
+    }
+
+    // 實作 IDisposable，在元件銷毀時取消訂閱，避免記憶體洩漏
+    public void Dispose()
+    {
+        UserState.OnStateChange -= StateHasChanged;
+    }
+}
+

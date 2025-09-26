@@ -1,0 +1,139 @@
+﻿@page "/register"
+@using Blazor_from.Models
+@using Blazor_from.Services
+@using System.Text.RegularExpressions
+@inject UserStateService UserState
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create New account</PageTitle>
+
+<div class="card-glass" style="max-width: 500px; margin: 2rem auto;">
+    <h3 class="text-center mb-4">Create your account</h3>
+
+    <EditForm EditContext="@editContext" OnValidSubmit="@HandleValidSubmit">
+        <div class="mb-3">
+            <label class="form-label">Username</label>
+            <InputText @bind-Value="registerModel.UserName" class="@GetValidationClass(nameof(registerModel.UserName))" placeholder="Enter your cool name" />
+            <div class="form-text-feedback">@validationMessages[nameof(registerModel.UserName)]</div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Email</label>
+            <InputText @bind-Value="registerModel.Email" class="@GetValidationClass(nameof(registerModel.Email))" placeholder="example@email.com" />
+            <div class="form-text-feedback">@validationMessages[nameof(registerModel.Email)]</div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Password</label>
+            <InputText @bind-Value="registerModel.Password" type="password" class="@GetValidationClass(nameof(registerModel.Password))" placeholder="At least 8 characters" />
+            <div class="form-text-feedback">@validationMessages[nameof(registerModel.Password)]</div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Confirm Password</label>
+            <InputText @bind-Value="registerModel.ConfirmPassword" type="password" class="@GetValidationClass(nameof(registerModel.ConfirmPassword))" placeholder="Enter your password again" />
+            <div class="form-text-feedback">@validationMessages[nameof(registerModel.ConfirmPassword)]</div>
+        </div>
+
+        <div class="d-grid mt-4">
+            <button type="submit" class="btn-modern" disabled="@(!isFormValid)">Register</button>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private RegisterModel registerModel = new();
+    private EditContext? editContext;
+    private bool isFormValid = false;
+
+    // 一個字典，用來存放我們的動態驗證訊息
+    private Dictionary<string, string> validationMessages = new();
+
+    protected override void OnInitialized()
+    {
+        editContext = new(registerModel);
+        // 監聽 EditContext 的 OnFieldChanged 事件，每當有欄位變動時就會觸發
+        editContext.OnFieldChanged += HandleFieldChanged;
+
+        // 初始化字典
+        validationMessages[nameof(registerModel.UserName)] = "";
+        validationMessages[nameof(registerModel.Email)] = "";
+        validationMessages[nameof(registerModel.Password)] = "";
+        validationMessages[nameof(registerModel.ConfirmPassword)] = "";
+    }
+
+    private void HandleFieldChanged(object? sender, FieldChangedEventArgs e)
+    {
+        ValidateField(e.FieldIdentifier.FieldName);
+        isFormValid = !editContext.GetValidationMessages().Any();
+        StateHasChanged();
+    }
+
+    private void ValidateField(string fieldName)
+    {
+        switch (fieldName)
+        {
+            case nameof(registerModel.UserName):
+                if (string.IsNullOrWhiteSpace(registerModel.UserName))
+                    validationMessages[fieldName] = "Username is required!";
+                else if (registerModel.UserName.Length > 15)
+                    validationMessages[fieldName] = "Name is too long. Maximum 15 characters.";
+                else if (Regex.IsMatch(registerModel.UserName, @"[^a-zA-Z0-9_]"))
+                    validationMessages[fieldName] = "Do not use special characters.";
+                else
+                    validationMessages[fieldName] = "This name is OK!";
+                break;
+
+            case nameof(registerModel.Email):
+                if (string.IsNullOrWhiteSpace(registerModel.Email))
+                    validationMessages[fieldName] = "Please enter your email.";
+                else if (!Regex.IsMatch(registerModel.Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+                    validationMessages[fieldName] = "This is not a valid email format.";
+                else
+                    validationMessages[fieldName] = "The email format is correct!";
+                break;
+
+            case nameof(registerModel.Password):
+                if (string.IsNullOrWhiteSpace(registerModel.Password))
+                    validationMessages[fieldName] = "The password cannot be empty.";
+                else if (registerModel.Password.Length < 8)
+                    validationMessages[fieldName] = $"You need {8 - registerModel.Password.Length} characters...";
+                else
+                    validationMessages[fieldName] = "The password is OK!";
+                break;
+
+            case nameof(registerModel.ConfirmPassword):
+                if (string.IsNullOrWhiteSpace(registerModel.ConfirmPassword))
+                    validationMessages[fieldName] = "Please enter your password again.";
+                else if (registerModel.Password != registerModel.ConfirmPassword)
+                    validationMessages[fieldName] = "The two passwords you entered do not match!";
+                else
+                    validationMessages[fieldName] = "The passwords match!";
+                break;
+        }
+
+        editContext?.Validate();
+    }
+
+    private void HandleValidSubmit()
+    {
+        // 在我們的狀態服務中設定使用者
+        if (registerModel.UserName != null)
+        {
+            UserState.SetUser(registerModel.UserName);
+        }
+
+        // 註冊成功後，導航到首頁
+        NavigationManager.NavigateTo("/");
+    }
+
+    // 輔助方法，根據驗證狀態回傳 CSS class
+    private string GetValidationClass(string fieldName)
+    {
+        var message = validationMessages[fieldName];
+        if (string.IsNullOrEmpty(message)) return "form-control-glass";
+        if (message.EndsWith("！") || message.EndsWith("。") || message.EndsWith("...")) return "form-control-glass is-invalid";
+        return "form-control-glass is-valid";
+    }
+}
+

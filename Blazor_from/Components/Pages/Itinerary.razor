@@ -1,0 +1,68 @@
+﻿@page "/itinerary"
+@using Blazor_from.Models
+
+<PageTitle>Schedule Manage</PageTitle>
+
+<div class="card-glass">
+    <h3 class="mb-4">My Schedule</h3>
+
+    <!-- 新增行程的表單 -->
+    <div class="d-flex gap-2 mb-4">
+        <input @bind="newItemTitle" @onkeyup="HandleKeyUp" class="form-control-glass" placeholder="Add a new Schedule..." />
+        <input type="date" @bind="newItemDueDate" class="form-control-glass" />
+        <button class="btn-modern" @onclick="AddItem">Add</button>
+    </div>
+
+    <!-- 行程列表 -->
+    @foreach (var item in items)
+    {
+        <div class="d-flex align-items-center p-2 rounded mb-2" style="background: @(item.IsDone ? "rgba(0,255,0,0.1)" : "rgba(0,0,0,0.1)");">
+            <input type="checkbox" @bind="item.IsDone" class="form-check-input me-3" style="transform: scale(1.5);" />
+            <div class="flex-grow-1">
+                <span style="text-decoration: @(item.IsDone ? "line-through" : "none")">@item.Title</span>
+                <small class="d-block text-white-50">Expir date: @item.DueDate.ToShortDateString()</small>
+            </div>
+            <button class="btn-modern" style="background: rgba(255, 0, 0, 0.3);" @onclick="() => DeleteItem(item.Id)">Del</button>
+        </div>
+    }
+</div>
+
+@code {
+    private List<ItineraryItem> items = new();
+    private string newItemTitle = string.Empty;
+    private DateTime newItemDueDate = DateTime.Now;
+
+    protected override void OnInitialized()
+    {
+        // 初始化時加入一些範例資料
+        items.Add(new ItineraryItem { Title = "完成 Blazor 專案報告", DueDate = DateTime.Now.AddDays(3) });
+        items.Add(new ItineraryItem { Title = "去超市買牛奶", DueDate = DateTime.Now.AddDays(1), IsDone = true });
+    }
+
+    private void AddItem()
+    {
+        if (!string.IsNullOrWhiteSpace(newItemTitle))
+        {
+            items.Add(new ItineraryItem { Title = newItemTitle, DueDate = newItemDueDate });
+            newItemTitle = string.Empty;
+        }
+        StateHasChanged();
+    }
+
+    private void DeleteItem(Guid id)
+    {
+        items.RemoveAll(x => x.Id == id);
+        StateHasChanged();
+    }
+
+    // 讓使用者按 Enter 也可以新增
+    private void HandleKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            AddItem();
+        }
+        StateHasChanged();
+    }
+}
+

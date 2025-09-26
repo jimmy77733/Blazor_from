@@ -1,0 +1,67 @@
+﻿@page "/attendance"
+@using Blazor_from.Models
+
+<PageTitle>Attendance Tracking</PageTitle>
+
+<div class="card-glass">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>Attendance Record</h3>
+        <button class="btn-modern" @onclick="ToggleClock" disabled="@isProcessing">
+            @buttonText
+        </button>
+    </div>
+
+    <table class="table" style="color: #fff;">
+        <thead>
+            <tr>
+                <th>Check-in time</th>
+                <th>Check-out time</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var record in records.OrderByDescending(r => r.ClockInTime))
+            {
+                <tr>
+                    <td>@record.ClockInTime.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                    <td>@(record.ClockOutTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? "---")</td>
+                    <td>@record.Status</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+</div>
+
+@code {
+    private List<AttendanceRecord> records = new();
+    private bool isClockedIn = false;
+    private bool isProcessing = false;
+    private string buttonText => isClockedIn ? "簽退" : "簽到";
+
+    private void ToggleClock()
+    {
+        isProcessing = true; // 防止重複點擊
+
+        if (isClockedIn)
+        {
+            // 執行簽退
+            var currentRecord = records.FirstOrDefault(r => r.ClockOutTime == null);
+            if (currentRecord != null)
+            {
+                currentRecord.ClockOutTime = DateTime.Now;
+            }
+            isClockedIn = false;
+        }
+        else
+        {
+            // 執行簽到
+            records.Add(new AttendanceRecord { ClockInTime = DateTime.Now });
+            isClockedIn = true;
+        }
+
+        isProcessing = false;
+        StateHasChanged();
+    }
+}
+

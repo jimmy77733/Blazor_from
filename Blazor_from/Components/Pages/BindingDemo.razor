@@ -1,0 +1,29 @@
+﻿@page "/bindingdemo"
+@rendermode InteractiveServer
+
+<PageTitle>Two-Way Binding Demonstration</PageTitle>
+
+<div class="card-glass">
+    <h3>Blazor Two-Way Binding Magic ✨</h3>
+    <p>This is an example demonstrating how to synchronize data instantly.</p>
+
+    <div class="mb-4">
+        <label class="form-label">Enter text here:</label>
+        <input @bind="currentText" @bind:event="oninput" class="form-control-glass" placeholder="Type anything..." />
+    </div>
+
+    <div class="p-4 rounded" style="background: rgba(0,0,0,0.2);">
+        <h5>Instant Display Area:</h5>
+        <p class="lead">@currentText</p>
+    </div>
+</div>
+
+@code {
+    private string currentText = "Default";
+
+    private void UpdateTextValue(ChangeEventArgs e)
+    {
+        currentText = e.Value?.ToString() ?? string.Empty;
+    }
+}
+
