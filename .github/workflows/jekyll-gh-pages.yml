@@ -26,7 +26,8 @@ jobs:
       # 步驟 3: 發佈專案成 Blazor WASM
       # 這裡會將所有需要的靜態檔案輸出到 release 資料夾
       - name: Publish .NET Project
-        run: dotnet publish Blazor_from.csproj -c Release -o release --nologo
+        # 【修正】在這裡加上了正確的專案資料夾路徑
+        run: dotnet publish Blazor_from/Blazor_from.csproj -c Release -o release --nologo
 
       # 步驟 4: 修改 base href，這是讓 Blazor 在 GitHub Pages 上正常運作的關鍵！
       # 它會自動找到 index.html 並將 <base href="/" /> 修改成 <base href="/你的倉庫名稱/" />
@@ -40,3 +41,4 @@ jobs:
         with:
           branch: gh-pages # 部署到 gh-pages 分支
           folder: release/wwwroot # 從這個資料夾部署
+
