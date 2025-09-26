@@ -23,12 +23,15 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      # 步驟 3: 【終極修正】使用單一指令發佈專案成 Blazor WASM
-      # -p:BlazorEnableCompression=false 參數是為了避免 GitHub Pages 上的壓縮問題
-      # -p:PublishDir=release/wwwroot/ 參數直接指定輸出到我們需要的資料夾
+      # 步驟 3: 使用單一指令發佈專案成 Blazor WASM
       - name: Publish .NET Project as WASM
-        run: dotnet publish Blazor_from/Blazor_from.csproj -c Release -p:BlazorEnableCompression=false -p:PublishDir=release/wwwroot/ --nologo
+        run: dotnet publish Blazor_from/Blazor_from.csproj -c Release -p:BlazorEnableCompression=false -o release --nologo
       
+      # 【新增的偵錯步驟】列出 release 資料夾的內容
+      # ls -R 指令會遞迴地列出 release 資料夾內所有的檔案和子資料夾
+      - name: List files in release directory
+        run: ls -R release
+
       # 步驟 4: 修改 base href，現在我們可以安全地修改這個由 publish 指令產生的檔案
       - name: Change base-tag in index.html
         run: sed -i 's/<base href="\/" \/>/<base href="\/Blazor_from\/" \/>/g' release/wwwroot/index.html
