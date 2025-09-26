@@ -29,71 +29,38 @@ body {
     }
 }
 
-
-/* 主內容區域樣式 */
-.main {
-    flex: 1;
-    padding: 2rem;
-    margin-left: 250px; 
-    min-height: 100vh; 
-}
-
 .page {
-    position: relative;
     display: flex;
-    flex-direction: column;
-    height: 100vh; /* 讓 page 佔滿整個視窗高度 */
+    flex-direction: row;
+    min-height: 100vh;
 }
 
-/* 導覽列容器 */
+/* 步驟 1: 將 sidebar 牢牢釘在左邊 */
 .sidebar {
-    background: rgba(30, 30, 50, 0.75); /* 深色毛玻璃背景 */
+    background: rgba(30, 30, 50, 0.75);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-right: 1px solid rgba(255, 255, 255, 0.1);
     width: 250px;
-    height: 100vh; /* 高度佔滿整個可視視窗 */
-    position: fixed;
+    height: 100vh; /* 高度永遠佔滿整個視窗 */
+    position: fixed; /* 將其從文檔流中抽離，並固定在視窗上 */
     top: 0;
     left: 0;
-    z-index: 1030; /* 確保它在最上層 */
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
+    z-index: 100; /* 確保它在最頂層 */
 }
 
-/* 主要內容區域 */
-.main .content {
-    padding-top: 1.1rem;
-    height: calc(100vh - 56px); /* 假設頂部 bar 高度為 56px */
-    overflow-y: auto; /* 內容過多時可以滾動 */
+/* 步驟 2: 讓 main 區域向右推開，並成為可滾動的容器 */
+main {
+    margin-left: 250px; /* 關鍵！為 sidebar 留出空間 */
+    height: 100vh; /* 讓 main 的高度也等於視窗高度 */
+    overflow-y: auto; /* 關鍵！只有 main 區域可以滾動 */
 }
-
-/* 頂部導覽列樣式 (如果有的話) */
-.top-row {
-    background-color: rgba(0,0,0,0.1);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    justify-content: flex-end;
-    height: 3.5rem;
-    display: flex;
-    align-items: center;
-}
-
-    .top-row ::deep a, .top-row ::deep .btn-link {
-        white-space: nowrap;
-        margin-left: 1.5rem;
-        text-decoration: none;
-        color: #f0f0f0;
-    }
-
-        .top-row ::deep a:hover, .top-row ::deep .btn-link:hover {
-            text-decoration: underline;
         }
 
-        .top-row ::deep a:first-child {
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+/* 步驟 4: article.content 保持原樣，它會自然地跟在 top-row 下方 */
+.content {
+    padding: 1.5rem;
+}
 
 /* 通用元件樣式 */
 .card-glass {
