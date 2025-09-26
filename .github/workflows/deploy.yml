@@ -23,23 +23,50 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      # 步驟 3: 使用單一指令發佈專案成 Blazor WASM
-      - name: Publish .NET Project as WASM
-        run: dotnet publish Blazor_from/Blazor_from.csproj -c Release -p:BlazorEnableCompression=false -o release --nologo
-      
-      # 【新增的偵錯步驟】列出 release 資料夾的內容
-      # ls -R 指令會遞迴地列出 release 資料夾內所有的檔案和子資料夾
-      - name: List files in release directory
-        run: ls -R release
+      # 步驟 3: 發佈 .NET 專案
+      # 這次我們只做最單純的發佈，把所有產物都放到 bin/Release 裡面
+      - name: Publish .NET Project
+        run: dotnet publish Blazor_from/Blazor_from.csproj -c Release --nologo
 
-      # 步驟 4: 修改 base href，現在我們可以安全地修改這個由 publish 指令產生的檔案
-      - name: Change base-tag in index.html
-        run: sed -i 's/<base href="\/" \/>/<base href="\/Blazor_from\/" \/>/g' release/wwwroot/index.html
+      # 步驟 4: 建立一個全新的、乾淨的部署資料夾
+      # `mkdir -p` 可以確保即使資料夾已存在也不會報錯
+      - name: Create publish directory
+        run: mkdir -p publish/wwwroot/_framework
 
-      # 步驟 5: 使用社群開發的強大 Action 來部署檔案
+      # 步驟 5: 將 Blazor WASM 的核心檔案複製過去
+      # 我們從發佈產物中，找到最重要的 _framework 資料夾，把它複製到新的部署位置
+      - name: Copy framework files
+        run: cp -r Blazor_from/bin/Release/net8.0/publish/wwwroot/_framework/* publish/wwwroot/_framework/
+
+      # 步驟 6: 將您專案中的靜態資源 (CSS, favicon等) 複製過去
+      - name: Copy static assets
+        run: cp -r Blazor_from/wwwroot/* publish/wwwroot/
+
+      # 步驟 7: 手動建立 index.html，並直接寫入正確的 base href
+      # 這是最關鍵的一步，我們不再依賴 sed 修改，而是直接生成最終版本
+      - name: Create custom index.html
+        run: |
+          echo '<!DOCTYPE html>
+          <html lang="zh-TW">
+          <head>
+              <meta charset="utf-8" />
+              <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+              <title>Blazor From</title>
+              <base href="/Blazor_from/" />
+              <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+              <link href="css/app.css" rel="stylesheet" />
+              <link href="Blazor_from.styles.css" rel="stylesheet" />
+          </head>
+          <body>
+              <div id="app">載入中...</div>
+              <script src="_framework/blazor.webassembly.js"></script>
+          </body>
+          </html>' > publish/wwwroot/index.html
+
+      # 步驟 8: 部署我們手動建立好的 publish/wwwroot 資料夾
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages # 部署到 gh-pages 分支
-          folder: release/wwwroot # 從這個資料夾部署
+          folder: publish/wwwroot # 從這個資料夾部署
 
